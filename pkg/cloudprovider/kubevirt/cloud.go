@@ -8,9 +8,8 @@ import (
 
 	"github.com/golang/glog"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/kubernetes/pkg/cloudprovider"
-	"k8s.io/kubernetes/pkg/controller"
-	"kubevirt.io/kubevirt/pkg/kubecli"
+	cloudprovider "k8s.io/cloud-provider"
+	"kubevirt.io/client-go/kubecli"
 )
 
 const (
@@ -112,7 +111,8 @@ func kubevirtCloudProviderFactory(config io.Reader) (cloudprovider.Interface, er
 
 // Initialize provides the cloud with a kubernetes client builder and may spawn goroutines
 // to perform housekeeping activities within the cloud provider.
-func (c *cloud) Initialize(clientBuilder controller.ControllerClientBuilder) {}
+func (c *cloud) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
+}
 
 // LoadBalancer returns a balancer interface. Also returns true if the interface is supported, false otherwise.
 func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
