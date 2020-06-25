@@ -23,13 +23,14 @@ import (
 	goflag "flag"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/server/healthz"
-	"k8s.io/apiserver/pkg/util/flag"
-	"k8s.io/apiserver/pkg/util/logs"
+	"k8s.io/component-base/cli/flag"
+	"k8s.io/component-base/logs"
 	"k8s.io/kubernetes/cmd/cloud-controller-manager/app"
 	"k8s.io/kubernetes/cmd/cloud-controller-manager/app/options"
 	_ "k8s.io/kubernetes/pkg/client/metrics/prometheus" // for client metric registration
@@ -48,7 +49,10 @@ import (
 var version string
 
 func init() {
-	healthz.DefaultHealthz()
+	// Avoid the default server mux
+	// Kubernetes-commit: dd5c8e14fd2a1715be7795c37fb5b92478867494
+	mux := http.NewServeMux()
+	healthz.InstallHandler(mux)
 }
 
 func main() {
@@ -68,7 +72,9 @@ the cloud specific control loops shipped with Kubernetes.`,
 			verflag.PrintAndExitIfRequested()
 			utilflag.PrintFlags(cmd.Flags())
 
-			c, err := s.Config()
+			// Change following to kubernetes change:
+			// https://github.com/kubernetes/kubernetes/pull/68283/commits/bbd992df138d0b8bca26a6b55e413c7258776663
+			c, err := s.Config(nil, nil)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%v\n", err)
 				os.Exit(1)
@@ -82,7 +88,9 @@ the cloud specific control loops shipped with Kubernetes.`,
 	}
 
 	fs := command.Flags()
-	namedFlagSets := s.Flags()
+	// Change following to kubernetes change:
+	// https://github.com/kubernetes/kubernetes/pull/68283/commits/bbd992df138d0b8bca26a6b55e413c7258776663
+	namedFlagSets := s.Flags([]string{}, []string{})
 	for _, f := range namedFlagSets.FlagSets {
 		fs.AddFlagSet(f)
 	}
